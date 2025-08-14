@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    /* Backgrounds */
+    --bg-primary: #121212;
+    --bg-secondary: #1E1E1E;
+    --surface: #222222;
+
+    /* Borders */
+    --border-color: #2D2D2D;
+
+    /* Accents */
+    --accent-primary: #4F8CFF;
+    --accent-hover: #3C6DD8;
+    --accent-secondary: #FFB84F;
+
+    /* Text */
+    --text-primary: #FFFFFF;
+    --text-secondary: #A1A1A1;
+   git
+    --radius-full: 9999px;
+
+    /* Shadows */
+    --shadow-dark: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  /* Dark mode */
+  .dark {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #151515;
+    --surface: #1b1b1b;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--body-m);
+  }
+}
