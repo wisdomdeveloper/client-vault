@@ -1,33 +1,50 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 @layer base {
   :root {
     /* Backgrounds */
     --bg-primary: #121212;
-    --bg-secondary: #1E1E1E;
+    --bg-secondary: #1e1e1e;
     --surface: #222222;
 
     /* Borders */
-    --border-color: #2D2D2D;
+    --border-color: #2d2d2d;
 
     /* Accents */
-    --accent-primary: #4F8CFF;
-    --accent-hover: #3C6DD8;
-    --accent-secondary: #FFB84F;
+    --accent-primary: #4f8cff;
+    --accent-hover: #3c6dd8;
+    --accent-secondary: #ffb84f;
 
     /* Text */
-    --text-primary: #FFFFFF;
-    --text-secondary: #A1A1A1;
-   git
+    --text-primary: #ffffff;
+    --text-secondary: #a1a1a1;
+    --text-muted: #6b6b6b;
+
+    /* Status Colors */
+    --success: #4caf50;
+    --error: #f44336;
+    --info: #00bcd4;
+
+    /* Typography sizes */
+    --heading-xl: 32px;
+    --heading-l: 24px;
+    --heading-m: 20px;
+    --body-l: 18px;
+    --body-m: 16px;
+    --body-s: 14px;
+    --caption: 12px;
+
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
     --radius-full: 9999px;
 
     /* Shadows */
-    --shadow-dark: 0 4px 12px rgba(0,0,0,0.4);
+    --shadow-dark: 0 4px 12px rgba(0, 0, 0, 0.4);
   }
 
-  /* Dark mode */
+  /* Dark mode overrides */
   .dark {
     --bg-primary: #0a0a0a;
     --bg-secondary: #151515;
