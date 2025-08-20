@@ -1,8 +1,6 @@
+import type { AuthOptions } from "next-auth";
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import type { AuthOptions } from "next-auth";
-import credentialsProvider from "next-auth/providers/credentials";
-
 
 declare module "next-auth" {
   interface Session {
@@ -15,46 +13,11 @@ declare module "next-auth" {
   }
 }
 
-const userSchema = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "user@example.com",
-    password: "password123",
-  },
-];
-
 export const authOptions: AuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-
-    credentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: {
-          label: "Email",
-          type: "email",
-          placeholder: "user@example.com",
-        },
-        password: {
-          label: "Password",
-          type: "password",
-          placeholder: "password123",
-        },
-      },
-
-      async authorize(credentials) {
-        const user = userSchema.find(
-          (u) =>
-            u.email === credentials?.email &&
-            u.password === credentials?.password
-        );
-        if (user) return user;
-        return null;
-      },
     }),
   ],
   callbacks: {
@@ -65,6 +28,7 @@ export const authOptions: AuthOptions = {
         token.name = user.name;
         token.picture = user.image;
       }
+      console.log(user);
       return token;
     },
 
@@ -75,6 +39,7 @@ export const authOptions: AuthOptions = {
         session.user.name = token.name ?? null;
         session.user.image = token.picture ?? null;
       }
+      console.log(session.user);
       return session;
     },
   },
