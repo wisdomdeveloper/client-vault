@@ -3,12 +3,16 @@
 @layer base {
   :root {
     /* Backgrounds */
-    --bg-primary: #121212;
-    --bg-secondary: #1e1e1e;
+    --bg-primary: hsl(263.4 70% 50.4%);
+    --bg-secondary: hsl(222.2 84% 4.9%);
     --surface: #222222;
 
+    --bg-backdrop: hsl(222.2 84% 4.9% / 0.7);
+
+    --bg-mood: #155dfc;
+
     /* Borders */
-    --border-color: #2d2d2d;
+    --border-color: hsl(217.2 32.6% 17.5%);
 
     /* Accents */
     --accent-primary: #4f8cff;
@@ -52,8 +56,30 @@
   }
 
   body {
-    background-color: var(--bg-primary);
+    background-color: var(--bg-secondary);
     color: var(--text-primary);
     font-size: var(--body-m);
   }
+}
+
+::-webkit-scrollbar {
+  width: 30px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-mood);
+  border-radius: 8px;
+  border: 2px solid var(--bg-secondary);
+  background-clip: content-box;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-mood) var(--bg-secondary);
 }

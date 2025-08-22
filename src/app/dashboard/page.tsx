@@ -1,4 +1,4 @@
-import TopBar from "@/components/SideBar";
+import TopBar from "@/components/NavigationBar";
 import Page from "@/features/dashboardcontent/Page";
 
 const Dashboard = () => {
@@ -7,7 +7,7 @@ const Dashboard = () => {
       <div>
         <TopBar />
       </div>
-      <div className="h-full">
+      <div className="h-[200vh]">
         <Page />
       </div>
     </div>

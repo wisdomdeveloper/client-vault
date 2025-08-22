@@ -1,8 +1,12 @@
+import FileManager from "@/components/FileTable";
+
 const Page = () => {
   return (
-    <div>
-      <div></div>
-    </div>
+    <main className="container mx-auto h-full w-full pt-20">
+      <div>
+        <FileManager />
+      </div>
+    </main>
   );
 };
 
