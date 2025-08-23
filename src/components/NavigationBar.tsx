@@ -1,4 +1,21 @@
+"use client";
+
+
+import { auth } from "@/lib/firebase/auth";
+import { signOut } from "firebase/auth";
+
 const NavigationBar = () => {
+  const handleLogout = () => {
+    signOut(auth)
+      .then(() => {
+        console.log("User signed out");
+      })
+      .catch((error) => {
+        console.error("Sign out error", error);
+      });
+    console.log("Logout clicked");
+  };
+
   return (
     <header className="w-full flex justify-center fixed top-0 left-0 right-0 z-50 border-b border-[var(--border-color)]">
       <nav
@@ -14,6 +31,7 @@ const NavigationBar = () => {
           <button
             className="rounded-lg py-2 px-4 bg-[var(--error)] cursor-pointer
             text-white font-medium shadow-sm hover:opacity-90 transition"
+            onClick={handleLogout}
           >
             Logout
           </button>

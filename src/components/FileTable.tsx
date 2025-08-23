@@ -146,6 +146,8 @@ const FileTable = () => {
     f.name.toLowerCase().includes(search.toLowerCase())
   );
 
+
+
   return (
     <div className="px-6">
       {/* Control bar */}
