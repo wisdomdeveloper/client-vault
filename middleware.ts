@@ -14,7 +14,8 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  // If user is logged in and tries to go to `/` → send them to `/dashboard`
+  // remember user redirec logic
+  // If user is logged in and tries to go to `/` send them to `/dashboard`
   if (pathname === "/" && userToken) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
