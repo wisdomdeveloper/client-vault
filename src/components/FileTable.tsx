@@ -17,50 +17,80 @@ import {
   X,
 } from "lucide-react";
 
+import { db, storage } from "@/lib/firebase/firestore";
+import { addDoc, collection } from "firebase/firestore/lite";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { useEffect, useRef, useState } from "react";
+import ConfirmDelete from "./ConfirmDelete";
 
 interface StoredFile {
+  id: string;
   name: string;
   size: number;
   type: string;
   lastModified: string;
-  dataUrl: string; // base64 for download/preview
+  dataUrl: string;
 }
 
 const FileTable = () => {
   const [files, setFiles] = useState<StoredFile[]>([]);
+  const [file, setFile] = useState<File | null>(null);
   const [search, setSearch] = useState("");
   const [renameIndex, setRenameIndex] = useState<number | null>(null);
   const [newName, setNewName] = useState("");
   const [previewFile, setPreviewFile] = useState<StoredFile | null>(null);
+  const [showModalDelete, setShowModalDelete] = useState<boolean>(false);
 
   const fileInput = useRef<HTMLInputElement | null>(null);
 
+  console.log(files);
+
   useEffect(() => {
-    const stored = localStorage.getItem("uploadedFiles");
-    if (stored) setFiles(JSON.parse(stored));
+    const handleUploadToDatabase = async () => {
+      if (!file) return;
+
+      const storageRef = ref(storage, `uploads/${file.name}`);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      const storedFile: StoredFile = {
+        id: crypto.randomUUID(),
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: new Date(file.lastModified).toISOString(),
+        dataUrl: downloadURL,
+      };
+
+      await addDoc(collection(db, "files"), storedFile);
+
+      console.log("files saved to database and firestore succesfully");
+      setFiles((prev) => [...prev, storedFile]);
+      setFile(null);
+    };
+
+    handleUploadToDatabase();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("uploadedFiles", JSON.stringify(files));
-  }, [files]);
-
   const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const selectedFIle = event.target.files?.[0];
+    if (!selectedFIle) return;
+
+    setFile(selectedFIle);
 
     const reader = new FileReader();
     reader.onload = () => {
       const fileData: StoredFile = {
-        name: file.name,
-        size: file.size,
-        type: file.type || getMimeFromExtension(file.name),
-        lastModified: new Date(file.lastModified).toISOString(),
+        id: crypto.randomUUID(),
+        name: selectedFIle.name,
+        size: selectedFIle.size,
+        type: selectedFIle.type || getMimeFromExtension(selectedFIle.name),
+        lastModified: new Date(selectedFIle.lastModified).toISOString(),
         dataUrl: reader.result as string,
       };
       setFiles((prev) => [...prev, fileData]);
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(selectedFIle);
 
     if (fileInput.current) fileInput.current.value = "";
   };
@@ -69,6 +99,7 @@ const FileTable = () => {
 
   const handleDelete = (idx: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== idx));
+    setShowModalDelete(!showModalDelete);
   };
 
   const openRenameModal = (idx: number) => {
@@ -146,8 +177,6 @@ const FileTable = () => {
     f.name.toLowerCase().includes(search.toLowerCase())
   );
 
-
-
   return (
     <div className="px-6">
       {/* Control bar */}
@@ -220,11 +249,17 @@ const FileTable = () => {
                       <Download className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleDelete(idx)}
+                      onClick={() => setShowModalDelete(!showModalDelete)}
                       className="text-red-400 cursor-pointer hover:text-red-500"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
+                    <ConfirmDelete
+                      id={idx}
+                      show={showModalDelete}
+                      showFunc={setShowModalDelete}
+                      deleteFunc={handleDelete}
+                    />
                   </td>
                 </tr>
               ))
