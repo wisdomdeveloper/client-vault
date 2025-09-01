@@ -11,26 +11,20 @@ import {
   FileText,
   FileVideo,
   Pencil,
-  Search,
   Trash2,
-  Upload,
   X,
 } from "lucide-react";
 
-import { db, storage } from "@/lib/firebase/firestore";
-import { addDoc, collection } from "firebase/firestore/lite";
+import { useAuth } from "@/context/AuthContext";
+import { db } from "@/lib/firebase/auth";
+import { storage } from "@/lib/firebase/firestore";
+import { StoredFile } from "@/types/type";
+import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { useEffect, useRef, useState } from "react";
 import ConfirmDelete from "./ConfirmDelete";
-
-interface StoredFile {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-  lastModified: string;
-  dataUrl: string;
-}
+import ControlBar from "./ControlBar";
+// import { useAuth } from "@/context/AuthContext";
 
 const FileTable = () => {
   const [files, setFiles] = useState<StoredFile[]>([]);
@@ -43,34 +37,66 @@ const FileTable = () => {
 
   const fileInput = useRef<HTMLInputElement | null>(null);
 
-  console.log(files);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    const handleUploadToDatabase = async () => {
-      if (!file) return;
+  // upload to firestore
 
-      const storageRef = ref(storage, `uploads/${file.name}`);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
+  const handleUploadToDatabase = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const selectedFile = event.target.files?.[0];
+    if (!selectedFile || !user) return;
 
-      const storedFile: StoredFile = {
-        id: crypto.randomUUID(),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: new Date(file.lastModified).toISOString(),
-        dataUrl: downloadURL,
-      };
+    // Upload to Firebase Storage
+    const storageRef = ref(storage, `files/${user.uid}/${selectedFile.name}`);
+    await uploadBytes(storageRef, selectedFile);
+    const downloadURL = await getDownloadURL(storageRef);
 
-      await addDoc(collection(db, "files"), storedFile);
-
-      console.log("files saved to database and firestore succesfully");
-      setFiles((prev) => [...prev, storedFile]);
-      setFile(null);
+    // Save metadata to Firestore
+    const storedFile: StoredFile = {
+      id: crypto.randomUUID(),
+      name: selectedFile.name,
+      size: selectedFile.size,
+      type: selectedFile.type || getMimeFromExtension(selectedFile.name),
+      lastModified: new Date(selectedFile.lastModified).toISOString(),
+      dataUrl: downloadURL,
+      userId: user.uid,
     };
 
-    handleUploadToDatabase();
-  }, []);
+    try {
+      await addDoc(collection(db, "files"), storedFile);
+    } catch (error) {
+      console.error("Error uploading file to Firestore:", error);
+    }
+    setFiles((prev) => [...prev, storedFile]);
+
+    if (fileInput.current) fileInput.current.value = "";
+  };
+
+  // fetch files from firestore
+
+  useEffect(() => {
+    const fetchFiles = async () => {
+      if (!user) return;
+      const q = query(collection(db, "files"), where("userId", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+      const filesData = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name,
+          size: data.size,
+          type: data.type,
+          lastModified: data.lastModified,
+          dataUrl: data.dataUrl,
+          userId: data.userId,
+        } as StoredFile;
+      });
+      setFiles(filesData);
+    };
+
+    fetchFiles();
+  }, [user]);
 
   const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFIle = event.target.files?.[0];
@@ -87,6 +113,7 @@ const FileTable = () => {
         type: selectedFIle.type || getMimeFromExtension(selectedFIle.name),
         lastModified: new Date(selectedFIle.lastModified).toISOString(),
         dataUrl: reader.result as string,
+        userId: user?.uid || "unknown",
       };
       setFiles((prev) => [...prev, fileData]);
     };
@@ -177,29 +204,20 @@ const FileTable = () => {
     f.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const setSearchFunc = (e: any) => {
+    setSearch(e.target.value);
+  };
+
   return (
     <div className="px-6">
       {/* Control bar */}
-      <div className="flex items-center w-full justify-between py-6">
-        <div className="flex items-center w-full max-w-[40%] border border-gray-700 rounded-lg px-3 shadow-sm bg-[#111] focus-within:ring-2 focus-within:ring-blue-500">
-          <Search className="w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search files..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-2 py-3 bg-transparent outline-none text-sm text-gray-200"
-          />
-        </div>
-        <button
-          onClick={handleClick}
-          className="flex items-center font-medium bg-blue-600 hover:bg-blue-700 py-2 px-5 cursor-pointer rounded-md shadow text-white transition"
-        >
-          <Upload className="w-5 h-5" />
-          <span className="ml-2">Upload</span>
-        </button>
-        <input type="file" ref={fileInput} hidden onChange={handleUpload} />
-      </div>
+      <ControlBar
+        search={search}
+        setSearchFunc={setSearchFunc}
+        handleClickFunc={handleClick}
+        handleUploadFunc={handleUpload}
+        fileInput={fileInput}
+      />
 
       {/* File Table */}
       <div className="overflow-hidden rounded-xl shadow border border-gray-800">

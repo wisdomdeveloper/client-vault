@@ -1,10 +1,14 @@
 "use client";
 
-
-import { auth } from "@/lib/firebase/auth";
+import { auth, db } from "@/lib/firebase/auth";
+import { UserData } from "@/types/type";
 import { signOut } from "firebase/auth";
+import { collection, getDocs } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
 const NavigationBar = () => {
+  const [users, setUsers] = useState<UserData[]>([]);
+
   const handleLogout = () => {
     signOut(auth)
       .then(() => {
@@ -15,6 +19,25 @@ const NavigationBar = () => {
       });
     console.log("Logout clicked");
   };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const querySnapshot = await getDocs(collection(db, "users"));
+      const usersData = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          photoURL: data.photoURL ?? "",
+          name: data.name ?? "",
+          email: data.email ?? "",
+          uid: data.uid ?? "",
+        } as UserData;
+      });
+      setUsers(usersData);
+    };
+
+    fetchUserData();
+  }, []);
 
   return (
     <header className="w-full flex justify-center fixed top-0 left-0 right-0 z-50 border-b border-[var(--border-color)]">
@@ -40,7 +63,17 @@ const NavigationBar = () => {
               className="w-[52px] h-[52px] rounded-full
               bg-gray-300 border border-[var(--border-color)]
               shadow-inner"
-            ></div>
+            >
+              {users &&
+                users.map((user) => (
+                  <img
+                    key={user.id}
+                    src={user.photoURL}
+                    alt="Profile"
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ))}
+            </div>
           </div>
         </div>
       </nav>
