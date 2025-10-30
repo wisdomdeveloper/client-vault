@@ -5,11 +5,8 @@ import Page from "@/features/dashboardcontent/Page";
 const Dashboard = () => {
   return (
     <ProtectedRoute>
-      <div className="h-full w-full">
-        <div>
-          <NavigationBar />
-        </div>
-        <div className="h-[200vh]">
+      <div className="h-full bg-black w-full">
+        <div className="">
           <Page />
         </div>
       </div>
