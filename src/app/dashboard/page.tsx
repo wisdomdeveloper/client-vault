@@ -1,4 +1,3 @@
-import NavigationBar from "@/components/NavigationBar";
 import ProtectedRoute from "@/components/ProtecttedRoute";
 import Page from "@/features/dashboardcontent/Page";
 
